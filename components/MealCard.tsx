@@ -27,7 +27,7 @@ const MealCard: React.FC<MealCardProps> = ({ meal, count, onAdd, onRemove, isMax
            ))}
         </div>
         <div className="absolute top-4 right-4">
-          <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg text-[10px] font-black text-[#A61919] uppercase tracking-widest border border-[#A61919]/10 shadow-sm">
+          <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg text-[10px] font-black text-[#A61919] uppercase tracking-widest border border-[#A61919]/20 shadow-sm">
             {meal.weight}
           </span>
         </div>

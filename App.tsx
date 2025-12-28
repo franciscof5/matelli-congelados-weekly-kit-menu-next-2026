@@ -11,7 +11,6 @@ import OrderModal from './components/OrderModal';
 
 type Tab = 'kit' | 'menu' | 'admin';
 
-// Logo URL confirmada do upload do usuário
 const LOGO_URL = "https://api.aistudio.google.com/v1/files/file-01jkr0a3qf693jsc759n7708pt";
 
 const Logo: React.FC<{ className?: string }> = ({ className }) => (
@@ -21,7 +20,6 @@ const Logo: React.FC<{ className?: string }> = ({ className }) => (
       alt="Matelli Congelados" 
       className="h-full w-auto object-contain z-10"
       onError={(e) => {
-        // Fallback visual caso o link do arquivo falhe temporariamente
         e.currentTarget.style.display = 'none';
         e.currentTarget.parentElement?.classList.add('matelli-logo-fallback');
       }}
@@ -42,8 +40,9 @@ const App: React.FC = () => {
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   
   const [catalog, setCatalog] = useState<Meal[]>(() => {
-    const saved = localStorage.getItem('matelli_catalog');
-    return saved ? JSON.parse(saved) : MEALS_DATA;
+    const saved = localStorage.getItem('matelli_catalog_v2');
+    if (saved) return JSON.parse(saved);
+    return MEALS_DATA;
   });
 
   const [selection, setSelection] = useState<SelectionState>(
@@ -52,7 +51,7 @@ const App: React.FC = () => {
   const [cart, setCart] = useState<CartState>({});
 
   useEffect(() => {
-    localStorage.setItem('matelli_catalog', JSON.stringify(catalog));
+    localStorage.setItem('matelli_catalog_v2', JSON.stringify(catalog));
   }, [catalog]);
 
   const handleSelectMeal = (day: string, category: MealCategory, meal: Meal) => {
@@ -99,12 +98,10 @@ const App: React.FC = () => {
     return Object.values(selection).reduce((acc: number, dayData) => acc + Object.keys(dayData).length, 0);
   }, [selection]);
 
-  // Fix: Explicitly type the accumulator as number to resolve 'unknown' operator '+' error
   const totalCartItems = useMemo(() => {
     return Object.values(cart).reduce((acc: number, item: any) => acc + item.quantity, 0);
   }, [cart]);
 
-  // Fix: Explicitly type the accumulator as number to resolve 'unknown' operator '+' error
   const totalCartPrice = useMemo(() => {
     return Object.values(cart).reduce((acc: number, item: any) => acc + (item.meal.price * item.quantity), 0);
   }, [cart]);
@@ -120,10 +117,7 @@ const App: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#F9F4ED]">
       <header className="bg-white border-b border-[#A61919]/10 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-          <div 
-            className="flex items-center gap-3 cursor-pointer" 
-            onClick={() => { setActiveTab('kit'); window.scrollTo(0,0); }}
-          >
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActiveTab('kit'); window.scrollTo(0,0); }}>
             <Logo className="h-14 sm:h-16" />
             <div className="hidden lg:block">
               <h1 className="text-lg font-bold text-[#A61919] leading-tight">Congelados</h1>
@@ -132,24 +126,11 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex bg-[#F9F4ED] p-1 rounded-2xl border border-[#A61919]/5">
-            <button 
-              onClick={() => setActiveTab('kit')}
-              className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'kit' ? 'bg-[#A61919] text-white shadow-md' : 'text-slate-500 hover:text-[#A61919]'}`}
-            >
-              🍱 KIT
-            </button>
-            <button 
-              onClick={() => setActiveTab('menu')}
-              className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'menu' ? 'bg-[#A61919] text-white shadow-md' : 'text-slate-500 hover:text-[#A61919]'}`}
-            >
-              📖 MENU
-            </button>
+            <button onClick={() => setActiveTab('kit')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'kit' ? 'bg-[#A61919] text-white shadow-md' : 'text-slate-500 hover:text-[#A61919]'}`}>🍱 KIT</button>
+            <button onClick={() => setActiveTab('menu')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'menu' ? 'bg-[#A61919] text-white shadow-md' : 'text-slate-500 hover:text-[#A61919]'}`}>📖 MENU</button>
           </div>
 
-          <button 
-            onClick={() => setIsCartOpen(!isCartOpen)}
-            className={`relative p-3 rounded-xl transition-all ${isCartOpen ? 'bg-[#A61919] text-white shadow-lg' : 'bg-slate-100 text-slate-500 hover:text-[#A61919]'}`}
-          >
+          <button onClick={() => setIsCartOpen(!isCartOpen)} className={`relative p-3 rounded-xl transition-all ${isCartOpen ? 'bg-[#A61919] text-white shadow-lg' : 'bg-slate-100 text-slate-500 hover:text-[#A61919]'}`}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
               <path d="M2.25 2.25a.75.75 0 0 0 0 1.5h1.386l2.308 10.774a2.25 2.25 0 0 0 2.247 1.769h10.883a2.25 2.25 0 0 0 2.247-1.769l1.623-7.57a.75.75 0 0 0-.696-.897H5.34l-.441-2.057a.75.75 0 0 0-.736-.594H2.25Zm4.983 14.25a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Zm7 0a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Z" />
               <path d="M10 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM18 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
@@ -163,16 +144,13 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Drawer do Carrinho / Resumo */}
       <div className={`fixed inset-0 z-[60] transition-opacity duration-300 ${isCartOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsCartOpen(false)} />
         <div className={`absolute right-0 top-0 bottom-0 w-full max-sm:w-full max-w-sm bg-white shadow-2xl transition-transform duration-500 ease-out p-6 overflow-y-auto no-scrollbar ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold text-[#A61919]">Resumo do Pedido</h2>
             <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
-                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" /></svg>
             </button>
           </div>
           
@@ -195,9 +173,7 @@ const App: React.FC = () => {
                         </div>
                       </div>
                       <button onClick={() => removeFromCart(item.meal)} className="text-red-400 p-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                          <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75V4H5a2 2 0 0 0-2 2v.041c0 .248.01.493.029.736L4.17 16.924a3 3 0 0 0 2.992 2.73h5.676a3 3 0 0 0 2.992-2.73l1.142-10.147c.018-.243.029-.488.029-.736V6a2 2 0 0 0-2-2h-1v-.25A2.75 2.75 0 0 0 11.25 1h-2.5ZM7.5 3.75a1.25 1.25 0 0 1 1.25-1.25h2.5a1.25 1.25 0 0 1 1.25 1.25V4h-5v-.25Z" clipRule="evenodd" />
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75V4H5a2 2 0 0 0-2 2v.041c0 .248.01.493.029.736L4.17 16.924a3 3 0 0 0 2.992 2.73h5.676a3 3 0 0 0 2.992-2.73l1.142-10.147c.018-.243.029-.488.029-.736V6a2 2 0 0 0-2-2h-1v-.25A2.75 2.75 0 0 0 11.25 1h-2.5ZM7.5 3.75a1.25 1.25 0 0 1 1.25-1.25h2.5a1.25 1.25 0 0 1 1.25 1.25V4h-5v-.25Z" clipRule="evenodd" /></svg>
                       </button>
                     </div>
                   ))}
@@ -208,12 +184,7 @@ const App: React.FC = () => {
                     </div>
                     <span className="text-2xl font-black text-[#A61919]">R$ {totalCartPrice.toFixed(2)}</span>
                   </div>
-                  <button 
-                    onClick={() => { setIsOrderModalOpen(true); setIsCartOpen(false); }}
-                    className="w-full bg-[#A61919] text-white py-4 rounded-2xl font-bold shadow-xl"
-                  >
-                    FINALIZAR PEDIDO
-                  </button>
+                  <button onClick={() => { setIsOrderModalOpen(true); setIsCartOpen(false); }} className="w-full bg-[#A61919] text-white py-4 rounded-2xl font-bold shadow-xl">FINALIZAR PEDIDO</button>
                 </div>
               )}
             </div>
@@ -221,20 +192,14 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <OrderModal 
-        isOpen={isOrderModalOpen} 
-        onClose={() => setIsOrderModalOpen(false)} 
-        selection={selection} 
-        cart={cart} 
-        type={activeTab as 'kit' | 'menu'} 
-      />
+      <OrderModal isOpen={isOrderModalOpen} onClose={() => setIsOrderModalOpen(false)} selection={selection} cart={cart} type={activeTab as 'kit' | 'menu'} />
 
       <main className="max-w-7xl mx-auto px-4 mt-6 flex-grow w-full">
         {activeTab === 'kit' && (
           <div className="animate-fade-in">
             <div className="mb-6 text-center md:text-left">
               <h2 className="text-4xl font-bold text-[#A61919] mb-1">Monte Seu Kit</h2>
-              <p className="text-slate-500 text-sm font-medium">Qualidade Matelli em cada um dos 35 pratos.</p>
+              <p className="text-slate-500 text-sm font-medium">Qualidade Matelli em 35 pratos gourmet.</p>
             </div>
 
             <div className="flex space-x-2 overflow-x-auto pb-4 no-scrollbar sticky top-20 z-40 py-4 bg-[#F9F4ED]/95 backdrop-blur-md border-b border-[#A61919]/5">
@@ -242,14 +207,7 @@ const App: React.FC = () => {
                 const isSelected = activeDay === day;
                 const dayCount = Object.keys(selection[day] || {}).length;
                 return (
-                  <button
-                    key={day}
-                    onClick={() => setActiveDay(day)}
-                    className={`
-                      flex flex-col items-center px-6 py-3 rounded-2xl transition-all duration-300 whitespace-nowrap border-2 min-w-[120px]
-                      ${isSelected ? 'bg-[#A61919] border-[#A61919] text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-500 hover:border-[#A61919]/30'}
-                    `}
-                  >
+                  <button key={day} onClick={() => setActiveDay(day)} className={`flex flex-col items-center px-6 py-3 rounded-2xl transition-all duration-300 whitespace-nowrap border-2 min-w-[120px] ${isSelected ? 'bg-[#A61919] border-[#A61919] text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-500 hover:border-[#A61919]/30'}`}>
                     <span className="text-[10px] font-bold uppercase tracking-widest mb-0.5">{day}</span>
                     <span className={`text-base font-black ${isSelected ? 'text-white/80' : 'text-[#A61919]'}`}>{dayCount}/5</span>
                   </button>
@@ -265,13 +223,7 @@ const App: React.FC = () => {
                     Refeições de {activeDay}
                   </h2>
                   {MEAL_ORDER.map((category) => (
-                    <MealSlot 
-                      key={`${activeDay}-${category}`}
-                      category={category}
-                      selectedMeal={selection[activeDay]?.[category]}
-                      onSelect={(meal) => handleSelectMeal(activeDay, category, meal)}
-                      customCatalog={catalog}
-                    />
+                    <MealSlot key={`${activeDay}-${category}`} category={category} selectedMeal={selection[activeDay]?.[category]} onSelect={(meal) => handleSelectMeal(activeDay, category, meal)} customCatalog={catalog} />
                   ))}
                 </div>
               </div>
@@ -286,7 +238,7 @@ const App: React.FC = () => {
           <div className="animate-fade-in mb-12">
             <div className="mb-10 text-center md:text-left">
               <h2 className="text-4xl font-bold text-[#A61919] mb-2">Cardápio Avulso</h2>
-              <p className="text-slate-500 font-medium">Sabor italiano congelado para você.</p>
+              <p className="text-slate-500 font-medium">Sabor italiano pronto para você.</p>
             </div>
             <div className="flex flex-col lg:flex-row gap-8 items-start">
               <div className="flex-grow w-full space-y-16">
@@ -298,14 +250,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                       {catalog.filter(m => group.categories.includes(m.category)).map(meal => (
-                        <MealCard 
-                          key={meal.id}
-                          meal={meal}
-                          count={cart[meal.id]?.quantity || 0}
-                          onAdd={addToCart}
-                          onRemove={removeFromCart}
-                          isMaxed={false}
-                        />
+                        <MealCard key={meal.id} meal={meal} count={cart[meal.id]?.quantity || 0} onAdd={addToCart} onRemove={removeFromCart} isMaxed={false} />
                       ))}
                     </div>
                   </section>
@@ -320,15 +265,7 @@ const App: React.FC = () => {
             {!isAdminLoggedIn ? (
               <LoginForm onLogin={() => setIsAdminLoggedIn(true)} />
             ) : (
-              <AdminPanel 
-                meals={catalog} 
-                onSave={handleSaveMeal} 
-                onDelete={handleDeleteMeal} 
-                onLogout={() => {
-                  setIsAdminLoggedIn(false);
-                  setActiveTab('kit');
-                }}
-              />
+              <AdminPanel meals={catalog} onSave={handleSaveMeal} onDelete={handleDeleteMeal} onLogout={() => { setIsAdminLoggedIn(false); setActiveTab('kit'); }} />
             )}
           </div>
         )}
@@ -340,15 +277,8 @@ const App: React.FC = () => {
              <Logo className="h-10" />
              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">© 2024 Matelli Congelados</p>
           </div>
-          
-          <button 
-            onClick={() => { setActiveTab('admin'); window.scrollTo(0, 0); }}
-            className={`p-3 rounded-full transition-all border border-slate-100 ${activeTab === 'admin' ? 'bg-slate-800 text-white shadow-lg' : 'bg-white text-slate-300 hover:text-slate-600'}`}
-            title="Administração"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-              <path fillRule="evenodd" d="M12 1.5a5.25 5.25 complementario-0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
-            </svg>
+          <button onClick={() => { setActiveTab('admin'); window.scrollTo(0, 0); }} className={`p-3 rounded-full transition-all border border-slate-100 ${activeTab === 'admin' ? 'bg-slate-800 text-white shadow-lg' : 'bg-white text-slate-300 hover:text-slate-600'}`} title="Administração">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" /></svg>
           </button>
         </div>
       </footer>

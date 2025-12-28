@@ -65,7 +65,7 @@ const MealSlot: React.FC<MealSlotProps> = ({ category, selectedMeal, onSelect, c
               >
                 <div className="relative h-24 sm:h-28 overflow-hidden">
                   <img src={option.image} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] font-black text-slate-500 uppercase tracking-widest">
+                  <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded text-[8px] font-black text-[#A61919] uppercase tracking-widest">
                     {option.weight}
                   </div>
                 </div>

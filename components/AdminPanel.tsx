@@ -13,7 +13,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ meals, onSave, onDelete, onLogo
   const [editingMeal, setEditingMeal] = useState<Partial<Meal> | null>(null);
 
   const handleEdit = (meal: Meal) => setEditingMeal(meal);
-  const handleCreate = () => setEditingMeal({ id: 'm' + Date.now(), name: '', description: '', calories: 0, category: MealCategory.LUNCH, image: '', tags: [], price: 0, weight: '' });
+  const handleCreate = () => setEditingMeal({ 
+    id: 'm' + Date.now(), 
+    name: '', 
+    description: '', 
+    category: MealCategory.LUNCH, 
+    image: '', 
+    tags: [], 
+    price: 0, 
+    weight: '' 
+  });
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,9 +53,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ meals, onSave, onDelete, onLogo
         <table className="w-full text-left">
           <thead>
             <tr className="border-b-2 border-[#F9F4ED]">
-              <th className="pb-6 font-black text-slate-300 text-[10px] uppercase tracking-[0.2em]">Item do Cardápio</th>
+              <th className="pb-6 font-black text-slate-300 text-[10px] uppercase tracking-[0.2em]">Item</th>
               <th className="pb-6 font-black text-slate-300 text-[10px] uppercase tracking-[0.2em]">Categoria</th>
-              <th className="pb-6 font-black text-slate-300 text-[10px] uppercase tracking-[0.2em]">Preço/Peso</th>
+              <th className="pb-6 font-black text-slate-300 text-[10px] uppercase tracking-[0.2em]">Preço / Peso</th>
               <th className="pb-6 font-black text-slate-300 text-[10px] uppercase tracking-[0.2em] text-right">Ações</th>
             </tr>
           </thead>
@@ -109,10 +118,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ meals, onSave, onDelete, onLogo
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Peso (ex: 400g)</label>
                   <input required value={editingMeal.weight} onChange={e => setEditingMeal({...editingMeal, weight: e.target.value})} className="w-full bg-[#F9F4ED] rounded-2xl px-6 py-4 outline-none font-bold" />
-                </div>
-                <div className="col-span-1">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Calorias (Opcional)</label>
-                  <input type="number" value={editingMeal.calories} onChange={e => setEditingMeal({...editingMeal, calories: parseInt(e.target.value)})} className="w-full bg-[#F9F4ED] rounded-2xl px-6 py-4 outline-none font-bold" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Imagem do Prato (URL)</label>

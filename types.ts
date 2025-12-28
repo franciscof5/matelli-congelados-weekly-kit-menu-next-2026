@@ -29,7 +29,6 @@ export interface Meal {
   id: string;
   name: string;
   description: string;
-  calories: number;
   category: MealCategory;
   image: string;
   tags: string[];
