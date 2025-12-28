@@ -34,6 +34,7 @@ export interface Meal {
   tags: string[];
   price: number;
   weight: string;
+  ingredients: Record<string, string>;
 }
 
 export type DaySelection = {

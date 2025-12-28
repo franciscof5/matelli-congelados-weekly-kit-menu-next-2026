@@ -8,6 +8,7 @@ import MealCard from './components/MealCard';
 import AdminPanel from './components/AdminPanel';
 import LoginForm from './components/LoginForm';
 import OrderModal from './components/OrderModal';
+import { subscribeToMeals } from './services/mealService';
 
 type Tab = 'kit' | 'menu' | 'admin';
 
@@ -38,21 +39,23 @@ const App: React.FC = () => {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const [catalog, setCatalog] = useState<Meal[]>(() => {
-    const saved = localStorage.getItem('matelli_catalog_v2');
-    if (saved) return JSON.parse(saved);
-    return MEALS_DATA;
-  });
+  const [catalog, setCatalog] = useState<Meal[]>([]);
 
   const [selection, setSelection] = useState<SelectionState>(
     DAYS_OF_WEEK.reduce((acc, day) => ({ ...acc, [day]: {} }), {})
   );
   const [cart, setCart] = useState<CartState>({});
 
+  // Carregar cardápio do Firebase
   useEffect(() => {
-    localStorage.setItem('matelli_catalog_v2', JSON.stringify(catalog));
-  }, [catalog]);
+    const unsubscribe = subscribeToMeals((meals) => {
+      setCatalog(meals);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSelectMeal = (day: string, category: MealCategory, meal: Meal) => {
     setSelection(prev => ({
@@ -80,20 +83,6 @@ const App: React.FC = () => {
     });
   };
 
-  const handleSaveMeal = (meal: Meal) => {
-    setCatalog(prev => {
-      const exists = prev.find(m => m.id === meal.id);
-      if (exists) return prev.map(m => m.id === meal.id ? meal : m);
-      return [...prev, meal];
-    });
-  };
-
-  const handleDeleteMeal = (mealId: string) => {
-    if (window.confirm('Excluir este item?')) {
-      setCatalog(prev => prev.filter(m => m.id !== mealId));
-    }
-  };
-
   const totalKitMeals = useMemo(() => {
     return Object.values(selection).reduce((acc: number, dayData) => acc + Object.keys(dayData).length, 0);
   }, [selection]);
@@ -112,6 +101,16 @@ const App: React.FC = () => {
     { name: 'Refeições', categories: [MealCategory.LUNCH, MealCategory.DINNER] },
     { name: 'Sobremesas', categories: [MealCategory.DESSERT] },
   ];
+
+  if (isLoading && catalog.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F9F4ED]">
+        <Logo className="h-24 mb-8 animate-pulse" />
+        <div className="w-12 h-12 border-4 border-[#A61919] border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-[#A61919] font-bold uppercase text-[10px] tracking-widest">Carregando Cardápio Gourmet...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F4ED]">
@@ -242,19 +241,28 @@ const App: React.FC = () => {
             </div>
             <div className="flex flex-col lg:flex-row gap-8 items-start">
               <div className="flex-grow w-full space-y-16">
-                {menuCategories.map((group) => (
-                  <section key={group.name}>
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="h-8 w-1.5 bg-[#009246] rounded-full"></div>
-                      <h3 className="text-3xl font-bold text-slate-800">{group.name}</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                      {catalog.filter(m => group.categories.includes(m.category)).map(meal => (
-                        <MealCard key={meal.id} meal={meal} count={cart[meal.id]?.quantity || 0} onAdd={addToCart} onRemove={removeFromCart} isMaxed={false} />
-                      ))}
-                    </div>
-                  </section>
-                ))}
+                {menuCategories.map((group) => {
+                  const items = catalog.filter(m => group.categories.includes(m.category));
+                  if (items.length === 0) return null;
+                  return (
+                    <section key={group.name}>
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className="h-8 w-1.5 bg-[#009246] rounded-full"></div>
+                        <h3 className="text-3xl font-bold text-slate-800">{group.name}</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {items.map(meal => (
+                          <MealCard key={meal.id} meal={meal} count={cart[meal.id]?.quantity || 0} onAdd={addToCart} onRemove={removeFromCart} isMaxed={false} />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+                {catalog.length === 0 && !isLoading && (
+                  <div className="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100">
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">O Cardápio está vazio. Acesse o Admin para cadastrar pratos.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -265,7 +273,10 @@ const App: React.FC = () => {
             {!isAdminLoggedIn ? (
               <LoginForm onLogin={() => setIsAdminLoggedIn(true)} />
             ) : (
-              <AdminPanel meals={catalog} onSave={handleSaveMeal} onDelete={handleDeleteMeal} onLogout={() => { setIsAdminLoggedIn(false); setActiveTab('kit'); }} />
+              <AdminPanel 
+                meals={catalog} 
+                onLogout={() => { setIsAdminLoggedIn(false); setActiveTab('kit'); }} 
+              />
             )}
           </div>
         )}
