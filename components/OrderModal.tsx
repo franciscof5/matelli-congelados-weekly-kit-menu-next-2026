@@ -71,6 +71,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
         createdAt: serverTimestamp(),
         type,
         total,
+        status: 'aprovado', // Status inicial para fluxo de compras
         items: JSON.parse(JSON.stringify(type === 'kit' ? selection : cart)),
         shoppingList: ingredients
       };
