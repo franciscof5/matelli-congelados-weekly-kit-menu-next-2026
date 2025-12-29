@@ -3,7 +3,7 @@ import { initializeApp, getApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCKLlAvazzXt3WqkShSvzwf38kx8oJEduc",
+  apiKey: "AIzaSyAHjF6dE0Gaa0x3rGlqYB9MFGdEvO9-dkI",
   authDomain: "matellicongelados.firebaseapp.com",
   projectId: "matellicongelados",
   storageBucket: "matellicongelados.firebasestorage.app",

@@ -45,7 +45,11 @@ const QR_COLLECTION = 'qrcodes';
    - Salva visita em subcoleção
 ========================= */
 
-export const logQRVisit = async (id: string, name?: string): Promise<boolean> => {
+export const logQRVisit = async (
+  id: string,
+  outlink: string,
+  name?: string
+): Promise<boolean> => {
   try {
     const qrRef = doc(db, QR_COLLECTION, id);
     const qrSnap = await getDoc(qrRef);
@@ -67,11 +71,12 @@ export const logQRVisit = async (id: string, name?: string): Promise<boolean> =>
       });
     }
 
-    // Salva visita (detalhada) em subcoleção
+    // 🔥 AQUI está o ponto-chave
     await addDoc(collection(qrRef, 'visits'), {
       timestamp: serverTimestamp(),
       userAgent: navigator.userAgent,
-      language: navigator.language
+      language: navigator.language,
+      outlink // 👈 salva o link de saída usado
     });
 
     return true;
@@ -80,6 +85,7 @@ export const logQRVisit = async (id: string, name?: string): Promise<boolean> =>
     return false;
   }
 };
+
 
 /* =========================
    CRIAR QR MANUALMENTE (ADMIN)
