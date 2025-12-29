@@ -18,7 +18,9 @@ export const getMealPlanInsight = async (selection: Record<string, string[]>): P
       Analise se a distribuição das refeições ao longo dos dias está variada e equilibrada.
       Mantenha o tom profissional mas acolhedor. No máximo 3 parágrafos curtos.`,
       config: {
+        // As per coding guidelines, if maxOutputTokens is set, thinkingConfig.thinkingBudget must also be set.
         maxOutputTokens: 500,
+        thinkingConfig: { thinkingBudget: 400 },
         temperature: 0.7,
       }
     });

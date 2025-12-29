@@ -12,8 +12,11 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({ selection, onFinish }) => {
   const [insight, setInsight] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const totalSelected = Object.values(selection).reduce((acc: number, dayData) => acc + Object.keys(dayData).length, 0);
-  const isComplete = totalSelected === 35;
+  // Fix: Cast Object.values to avoid 'unknown' type error in reduce
+  const totalSelected = (Object.values(selection) as any[]).reduce((acc: number, dayData) => acc + Object.keys(dayData).length, 0);
+  // Agora permite finalizar se tiver pelo menos 1 prato
+  const isComplete = totalSelected > 0;
+  const isFullyFilled = totalSelected === 35;
 
   const totalPrice = useMemo(() => {
     return Object.values(selection).reduce((acc: number, dayData) => {
@@ -81,7 +84,7 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({ selection, onFinish }) => {
             : 'bg-slate-100 text-slate-300 cursor-not-allowed'
         }`}
       >
-        FINALIZAR KIT
+        {isFullyFilled ? 'FINALIZAR KIT' : 'FINALIZAR KIT PARCIAL'}
       </button>
 
       {isComplete && (
