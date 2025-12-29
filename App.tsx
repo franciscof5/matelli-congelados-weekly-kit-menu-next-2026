@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useLayoutEffect } from 'react';
 import { Meal, MealCategory, SelectionState, CartState, DAYS_OF_WEEK, MEAL_ORDER } from './types';
 import { MEALS_DATA } from './constants';
 import SummaryPanel from './components/SummaryPanel';
@@ -14,6 +14,16 @@ import { logQRVisit } from './services/qrService';
 type Tab = 'kit' | 'menu' | 'admin';
 
 const LOGO_URL = "https://api.aistudio.google.com/v1/files/file-01jkr0a3qf693jsc759n7708pt";
+
+const fullPath = window.location.pathname;
+
+const BASE_PATH = '/matelli-congelados-weekly-kit-menu-next-2026';
+
+const path = fullPath.startsWith(BASE_PATH)
+  ? fullPath.replace(BASE_PATH, '')
+  : fullPath;
+
+const isQRCodeRoute = path.startsWith('/qrcodes/');
 
 const Logo: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
@@ -49,21 +59,165 @@ const App: React.FC = () => {
   );
   const [cart, setCart] = useState<CartState>({});
 
-  // Lógica de Rota de QR Code
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path.startsWith('/qrcodes/')) {
-      const qrId = path.split('/')[2];
-      if (qrId) {
-        logQRVisit(qrId).then(() => {
-          // Após registrar o acesso, limpa a URL para a raiz sem recarregar a página
-          window.history.replaceState({}, '', '/');
-          // Feedback opcional ou apenas segue para o menu
-          console.log(`Visita ao QR ${qrId} registrada.`);
-        });
-      }
-    }
-  }, []);
+  // useEffect(() => {
+  //   const fullPath = window.location.pathname;
+
+  //   const BASE_PATH = '/matelli-congelados-weekly-kit-menu-next-2026';
+
+  //   // remove base do GH Pages ou local
+  //   const path = fullPath.startsWith(BASE_PATH)
+  //     ? fullPath.replace(BASE_PATH, '')
+  //     : fullPath;
+
+  //   // esperado: /qrcodes/:id/:outlink
+  //   if (path.startsWith('/qrcodes/')) {
+  //     const parts = path.split('/').filter(Boolean);
+  //     // parts = ['qrcodes', 'EMBALAGEM-123', 'https%3A%2F%2Fwww.f5sites.com']
+
+  //     const qrId = parts[1];
+  //     const encodedOutlink = parts[2];
+
+  //     if (!qrId) return;
+
+  //     const outlink = encodedOutlink
+  //       ? decodeURIComponent(encodedOutlink)
+  //       : null;
+
+  //     logQRVisit(qrId)
+  //       .then(() => {
+  //         console.log(`✅ Visita registrada: ${qrId}`);
+
+  //         if (outlink) {
+  //           console.log(`➡️ Redirecionando para: ${outlink}`);
+  //           document.open();
+  //           document.write(`
+  //             <!DOCTYPE html>
+  //             <html lang="pt-BR">
+  //             <head>
+  //               <meta charset="UTF-8" />
+  //               <title>Redirecionando...</title>
+  //               <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  //               <style>
+  //                 html, body {
+  //                   margin: 0;
+  //                   padding: 0;
+  //                   width: 100%;
+  //                   height: 100%;
+  //                   background: #ffffff;
+  //                   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  //                 }
+  //                 .container {
+  //                   display: flex;
+  //                   align-items: center;
+  //                   justify-content: center;
+  //                   height: 100%;
+  //                   text-align: center;
+  //                 }
+  //                 h1 {
+  //                   font-size: 20px;
+  //                   font-weight: 700;
+  //                   color: #A61919;
+  //                   margin-bottom: 8px;
+  //                 }
+  //                 p {
+  //                   font-size: 14px;
+  //                   color: #555;
+  //                 }
+  //               </style>
+  //             </head>
+  //             <body>
+  //               <div class="container">
+  //                 <div>
+  //                   <h1>Obrigado por ler o QR Code!</h1>
+  //                   <p>Redirecionando…</p>
+  //                 </div>
+  //               </div>
+
+  //               <script>
+  //                 setTimeout(() => {
+  //                   window.location.href = "${outlink}";
+  //                 }, 1200);
+  //               </script>
+  //             </body>
+  //             </html>
+  //             `);
+  //           document.close();
+  //         } else {
+  //           // fallback: volta pra home
+  //           window.history.replaceState({}, '', BASE_PATH + '/');
+  //         }
+  //       })
+  //       .catch(err => {
+  //         console.error('❌ Erro ao registrar visita:', err);
+  //       });
+  //   }
+  // }, []);
+  useLayoutEffect(() => {
+    if (!isQRCodeRoute) return
+
+    const [, , qrId, rawOutlink] = path.split('/')
+
+    if (!qrId || !rawOutlink) return
+
+    const outlink = decodeURIComponent(rawOutlink)
+
+    logQRVisit(qrId, outlink).finally(() => {
+      document.open()
+      document.write(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Redirecionando...</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <style>
+            html, body {
+              margin: 0;
+              padding: 0;
+              width: 100%;
+              height: 100%;
+              background: #fff;
+              font-family: system-ui, sans-serif;
+            }
+            .container {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 100%;
+              text-align: center;
+            }
+            h1 {
+              font-size: 20px;
+              font-weight: 700;
+              color: #A61919;
+              margin-bottom: 6px;
+            }
+            p {
+              font-size: 14px;
+              color: #555;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div>
+              <h1>Obrigado por ler o QR Code!</h1>
+              <p>Redirecionando…</p>
+            </div>
+          </div>
+          <script>
+            setTimeout(() => {
+              window.location.href = "${outlink}";
+            }, 1200);
+          </script>
+        </body>
+        </html>
+      `)
+      document.close()
+    })
+  }, [])
+  
+    
 
   // Carregar cardápio do Firebase
   useEffect(() => {
@@ -118,6 +272,10 @@ const App: React.FC = () => {
     { name: 'Refeições', categories: [MealCategory.LUNCH, MealCategory.DINNER] },
     { name: 'Sobremesas', categories: [MealCategory.DESSERT] },
   ];
+
+  if (isQRCodeRoute) {
+    return null;
+  }
 
   if (isLoading && catalog.length === 0) {
     return (
