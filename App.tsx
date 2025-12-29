@@ -9,6 +9,7 @@ import AdminPanel from './components/AdminPanel';
 import LoginForm from './components/LoginForm';
 import OrderModal from './components/OrderModal';
 import { subscribeToMeals } from './services/mealService';
+import { logQRVisit } from './services/qrService';
 
 type Tab = 'kit' | 'menu' | 'admin';
 
@@ -47,6 +48,22 @@ const App: React.FC = () => {
     DAYS_OF_WEEK.reduce((acc, day) => ({ ...acc, [day]: {} }), {})
   );
   const [cart, setCart] = useState<CartState>({});
+
+  // Lógica de Rota de QR Code
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/qrcodes/')) {
+      const qrId = path.split('/')[2];
+      if (qrId) {
+        logQRVisit(qrId).then(() => {
+          // Após registrar o acesso, limpa a URL para a raiz sem recarregar a página
+          window.history.replaceState({}, '', '/');
+          // Feedback opcional ou apenas segue para o menu
+          console.log(`Visita ao QR ${qrId} registrada.`);
+        });
+      }
+    }
+  }, []);
 
   // Carregar cardápio do Firebase
   useEffect(() => {

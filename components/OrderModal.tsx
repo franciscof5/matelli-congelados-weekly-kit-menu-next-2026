@@ -22,15 +22,14 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
   if (!isOpen) return null;
 
   const matelliPhone = "5511958877900";
-  const supportPhone = "559184503875";
 
   const calculateTotal = (): number => {
     if (type === 'kit' && selection) {
-      return Object.values(selection).reduce((acc: number, dayData) => {
-        return acc + Object.values(dayData).reduce((dayAcc: number, meal) => dayAcc + (meal?.price || 0), 0);
+      return (Object.values(selection) as any[]).reduce((acc: number, dayData) => {
+        return acc + (Object.values(dayData) as any[]).reduce((dayAcc: number, meal) => dayAcc + (meal?.price || 0), 0);
       }, 0);
     } else if (type === 'menu' && cart) {
-      return Object.values(cart).reduce((acc: number, item: any) => acc + (item.meal.price * item.quantity), 0);
+      return (Object.values(cart) as any[]).reduce((acc: number, item: any) => acc + (item.meal.price * item.quantity), 0);
     }
     return 0;
   };
@@ -50,10 +49,10 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
 
     if (type === 'kit' && selection) {
       Object.values(selection).forEach(dayData => {
-        Object.values(dayData).forEach(meal => { if (meal) addIngredients(meal as Meal); });
+        (Object.values(dayData) as any[]).forEach(meal => { if (meal) addIngredients(meal as Meal); });
       });
     } else if (type === 'menu' && cart) {
-      Object.values(cart).forEach(item => { addIngredients(item.meal, item.quantity); });
+      (Object.values(cart) as any[]).forEach(item => { addIngredients(item.meal, item.quantity); });
     }
     return ingredientMap;
   };
@@ -65,13 +64,13 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
     const ingredients = getIngredientList();
 
     try {
-      // 1. Persistência no Firebase Firestore
+      // 1. Persistência no Firebase Firestore (Importante para que o Admin veja a lista consolidada depois)
       const orderData = {
         id: newId,
         createdAt: serverTimestamp(),
         type,
         total,
-        status: 'aprovado', // Status inicial para fluxo de compras
+        status: 'aprovado',
         items: JSON.parse(JSON.stringify(type === 'kit' ? selection : cart)),
         shoppingList: ingredients
       };
@@ -81,12 +80,12 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
       // 2. Mensagem Matelli
       let orderText = `*PEDIDO #${newId} - MATELLI CONGELADOS*\n\n`;
       if (type === 'kit' && selection) {
-        orderText += `*🍱 KIT SEMANAL (35 Marmitas)*\n`;
+        orderText += `*🍱 KIT SEMANAL PARCIAL*\n`;
         DAYS_OF_WEEK.forEach(day => {
-          const meals = selection![day];
-          if (meals) {
+          const dayMeals = selection![day];
+          if (dayMeals && Object.keys(dayMeals).length > 0) {
             orderText += `\n*${day.toUpperCase()}:*\n`;
-            Object.values(meals).forEach(m => {
+            Object.values(dayMeals).forEach(m => {
               if (m) orderText += `- ${(m as Meal).name}\n`;
             });
           }
@@ -99,29 +98,14 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
       }
       orderText += `\n*Valor Estimado: R$ ${total.toFixed(2)}*`;
 
-      // 3. Mensagem Lista de Compras (Suporte)
-      let shoppingText = `*📝 LISTA DE COMPRAS - PEDIDO #${newId}*\n\n`;
-      Object.entries(ingredients).forEach(([name, measures]) => {
-        shoppingText += `• *${name}*: ${measures.join(' + ')}\n`;
-      });
-
-      // 4. Abertura dos WhatsApps
+      // 3. Abertura do WhatsApp do cliente para a Matelli
       window.open(`https://wa.me/${matelliPhone}?text=${encodeURIComponent(orderText)}`, '_blank');
       
-      // Pequeno delay para evitar bloqueio de pop-up agressivo
-      setTimeout(() => {
-        window.open(`https://wa.me/${supportPhone}?text=${encodeURIComponent(shoppingText)}`, '_blank');
-      }, 500);
-
       setOrderId(newId);
       setIsSent(true);
     } catch (error: any) {
       console.error("Erro ao salvar pedido:", error);
-      if (error.code === 'permission-denied') {
-        alert("Erro de Permissão: Verifique as regras de segurança no console do Firebase (Firestore Rules).");
-      } else {
-        alert("Houve um erro ao salvar seu pedido. Tente novamente.");
-      }
+      alert("Houve um erro ao processar seu pedido. Por favor, tente novamente.");
     } finally {
       setIsSaving(false);
     }
@@ -155,7 +139,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Comprovante Digital</span>
                 <h3 className="text-4xl font-black text-[#A61919] tracking-tighter">{orderId}</h3>
                 <p className="text-slate-500 font-medium mt-4 max-w-sm mx-auto leading-tight">
-                  Seu pedido foi salvo no banco de dados e as conversas de WhatsApp foram iniciadas.
+                  Seu pedido foi registrado e o WhatsApp de atendimento foi aberto para conclusão.
                 </p>
               </div>
               <button 
@@ -168,21 +152,25 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
           ) : (
             <div className="space-y-6">
               {type === 'kit' && selection ? (
-                DAYS_OF_WEEK.map(day => (
-                  <div key={day} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest mb-3 border-b border-slate-50 pb-1">{day}</h3>
-                    <ul className="space-y-2">
-                      {(Object.values(selection[day] || {}) as Meal[]).map((m, i) => (
-                        <li key={i} className="text-sm font-bold text-slate-700 flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#009246]"></span>
-                            {m?.name}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))
+                DAYS_OF_WEEK.map(day => {
+                  const dayMeals = selection[day];
+                  if (!dayMeals || Object.keys(dayMeals).length === 0) return null;
+                  return (
+                    <div key={day} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                      <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest mb-3 border-b border-slate-50 pb-1">{day}</h3>
+                      <ul className="space-y-2">
+                        {(Object.values(dayMeals) as Meal[]).map((m, i) => (
+                          <li key={i} className="text-sm font-bold text-slate-700 flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#009246]"></span>
+                              {m?.name}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })
               ) : (
                 <ul className="space-y-3">
                   {Object.values(cart || {}).map((item: any, i) => (
@@ -208,7 +196,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, selection, car
                  <span className="text-3xl font-black text-[#A61919]">R$ {calculateTotal().toFixed(2)}</span>
                </div>
                <p className="text-[9px] text-[#A61919] font-bold italic leading-tight max-w-[140px] text-right">
-                 ID gerado após confirmação.
+                 Confirmação gera um ID de pedido.
                </p>
             </div>
             
