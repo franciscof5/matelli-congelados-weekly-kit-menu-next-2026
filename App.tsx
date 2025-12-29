@@ -19,10 +19,14 @@ const fullPath = window.location.pathname;
 
 const BASE_PATH = '/matelli-congelados-weekly-kit-menu-next-2026';
 
-const path = fullPath.startsWith(BASE_PATH)
-  ? fullPath.replace(BASE_PATH, '')
-  : fullPath;
+// const path = fullPath.startsWith(BASE_PATH)
+//   ? fullPath.replace(BASE_PATH, '')
+//   : fullPath;
 
+// const isQRCodeRoute = path.startsWith('/qrcodes/');
+
+const hash = window.location.hash; // ex: "#/qrcodes/embalagem1/..."
+const path = hash.replace(/^#/, ''); // remove o #
 const isQRCodeRoute = path.startsWith('/qrcodes/');
 
 const Logo: React.FC<{ className?: string }> = ({ className }) => (
@@ -59,101 +63,12 @@ const App: React.FC = () => {
   );
   const [cart, setCart] = useState<CartState>({});
 
-  // useEffect(() => {
-  //   const fullPath = window.location.pathname;
-
-  //   const BASE_PATH = '/matelli-congelados-weekly-kit-menu-next-2026';
-
-  //   // remove base do GH Pages ou local
-  //   const path = fullPath.startsWith(BASE_PATH)
-  //     ? fullPath.replace(BASE_PATH, '')
-  //     : fullPath;
-
-  //   // esperado: /qrcodes/:id/:outlink
-  //   if (path.startsWith('/qrcodes/')) {
-  //     const parts = path.split('/').filter(Boolean);
-  //     // parts = ['qrcodes', 'EMBALAGEM-123', 'https%3A%2F%2Fwww.f5sites.com']
-
-  //     const qrId = parts[1];
-  //     const encodedOutlink = parts[2];
-
-  //     if (!qrId) return;
-
-  //     const outlink = encodedOutlink
-  //       ? decodeURIComponent(encodedOutlink)
-  //       : null;
-
-  //     logQRVisit(qrId)
-  //       .then(() => {
-  //         console.log(`✅ Visita registrada: ${qrId}`);
-
-  //         if (outlink) {
-  //           console.log(`➡️ Redirecionando para: ${outlink}`);
-  //           document.open();
-  //           document.write(`
-  //             <!DOCTYPE html>
-  //             <html lang="pt-BR">
-  //             <head>
-  //               <meta charset="UTF-8" />
-  //               <title>Redirecionando...</title>
-  //               <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  //               <style>
-  //                 html, body {
-  //                   margin: 0;
-  //                   padding: 0;
-  //                   width: 100%;
-  //                   height: 100%;
-  //                   background: #ffffff;
-  //                   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  //                 }
-  //                 .container {
-  //                   display: flex;
-  //                   align-items: center;
-  //                   justify-content: center;
-  //                   height: 100%;
-  //                   text-align: center;
-  //                 }
-  //                 h1 {
-  //                   font-size: 20px;
-  //                   font-weight: 700;
-  //                   color: #A61919;
-  //                   margin-bottom: 8px;
-  //                 }
-  //                 p {
-  //                   font-size: 14px;
-  //                   color: #555;
-  //                 }
-  //               </style>
-  //             </head>
-  //             <body>
-  //               <div class="container">
-  //                 <div>
-  //                   <h1>Obrigado por ler o QR Code!</h1>
-  //                   <p>Redirecionando…</p>
-  //                 </div>
-  //               </div>
-
-  //               <script>
-  //                 setTimeout(() => {
-  //                   window.location.href = "${outlink}";
-  //                 }, 1200);
-  //               </script>
-  //             </body>
-  //             </html>
-  //             `);
-  //           document.close();
-  //         } else {
-  //           // fallback: volta pra home
-  //           window.history.replaceState({}, '', BASE_PATH + '/');
-  //         }
-  //       })
-  //       .catch(err => {
-  //         console.error('❌ Erro ao registrar visita:', err);
-  //       });
-  //   }
-  // }, []);
   useLayoutEffect(() => {
-    if (!isQRCodeRoute) return
+    // if (!isQRCodeRoute) return
+    const hash = window.location.hash; // ex: "#/qrcodes/embalagem1/https%3A%2F%2Flinktr.ee%2Fmatellicongelados"
+    const path = hash.replace(/^#/, ''); // remove o #
+
+    if (!path.startsWith('/qrcodes/')) return;
 
     const [, , qrId, rawOutlink] = path.split('/')
 
