@@ -9,10 +9,11 @@ import AdminPanel from './components/AdminPanel';
 import LoginForm from './components/LoginForm';
 import OrderModal from './components/OrderModal';
 import Roulette from './components/Roulette';
+import ExportMenu from './components/ExportMenu';
 import { subscribeToMeals } from './services/mealService';
 import { logQRVisit } from './services/qrService';
 
-type Tab = 'kit' | 'menu' | 'admin' | 'roulette';
+type Tab = 'kit' | 'menu' | 'admin' | 'roulette' | 'print';
 
 const LOGO_URL = "https://api.aistudio.google.com/v1/files/file-01jkr0a3qf693jsc759n7708pt";
 
@@ -97,9 +98,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleSelectMealFromRoulette = (meal: Meal) => {
-    // Adiciona ao dia atual selecionado se for kit, ou ao carrinho se for menu
     if (activeTab === 'kit') {
-      // Tenta encontrar o primeiro slot livre na categoria do prato no dia ativo
       handleSelectMeal(activeDay, meal.category, meal);
       setIsCartOpen(true);
     } else {
@@ -166,10 +165,11 @@ const App: React.FC = () => {
             <Logo className="h-14 sm:h-16" />
           </div>
           
-          <div className="flex bg-[#F9F4ED] p-1 rounded-2xl border border-[#A61919]/5">
-            <button onClick={() => setActiveTab('kit')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'kit' ? 'bg-[#A61919] text-white shadow-md' : 'text-slate-500 hover:text-[#A61919]'}`}>🍱 KIT</button>
-            <button onClick={() => setActiveTab('menu')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'menu' ? 'bg-[#A61919] text-white shadow-md' : 'text-slate-500 hover:text-[#A61919]'}`}>📖 MENU</button>
-            <button onClick={() => setActiveTab('roulette')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1 ${activeTab === 'roulette' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500 hover:text-amber-500'}`}>
+          <div className="flex bg-[#F9F4ED] p-1 rounded-2xl border border-[#A61919]/5 overflow-x-auto no-scrollbar">
+            <button onClick={() => setActiveTab('kit')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${activeTab === 'kit' ? 'bg-[#A61919] text-white shadow-md' : 'text-slate-500 hover:text-[#A61919]'}`}>🍱 KIT</button>
+            <button onClick={() => setActiveTab('menu')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${activeTab === 'menu' ? 'bg-[#A61919] text-white shadow-md' : 'text-slate-500 hover:text-[#A61919]'}`}>📖 MENU</button>
+            <button onClick={() => setActiveTab('print')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${activeTab === 'print' ? 'bg-[#009246] text-white shadow-md' : 'text-slate-500 hover:text-[#009246]'}`}>🖼️ CARDÁPIO</button>
+            <button onClick={() => setActiveTab('roulette')} className={`px-4 py-1.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap flex items-center gap-1 ${activeTab === 'roulette' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500 hover:text-amber-500'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.982a.75.75 0 00-.75.75v4.25a.75.75 0 001.5 0v-2.22l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.442-.314zM4.688 8.576a5.5 5.5 0 019.201-2.466l.312.311h-2.433a.75.75 0 000 1.5h4.25a.75.75 0 00.75-.75V2.922a.75.75 0 00-1.5 0v2.22l-.31-.31a7 7 0 00-11.712 3.138.75.75 0 001.442.314z" clipRule="evenodd" /></svg>
               SORTE
             </button>
@@ -247,6 +247,12 @@ const App: React.FC = () => {
                 <MealCard key={meal.id} meal={meal} count={cart[meal.id]?.quantity || 0} onAdd={addToCart} onRemove={removeFromCart} isMaxed={false} />
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'print' && (
+          <div className="animate-fade-in py-10">
+            <ExportMenu catalog={catalog} />
           </div>
         )}
 
